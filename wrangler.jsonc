@@ -1,0 +1,15 @@
+{
+  "name": "garmin-mcp-cloud",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-02-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // KV namespace — create with: npx wrangler kv namespace create "GARMIN_KV"
+  // Then fill in the ID below
+  "kv_namespaces": [
+    {
+      "binding": "GARMIN_KV",
+      "id": "YOUR_KV_NAMESPACE_ID"
+    }
+  ]
+}
