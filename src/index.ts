@@ -4,8 +4,8 @@
  * Remote MCP server exposing Anne's Garmin health data.
  * Accessible from Claude mobile, desktop, and web via Streamable HTTP.
  *
- * Auth: API key via Authorization: Bearer header
- * Transport: Streamable HTTP at /mcp
+ * Auth: API key via URL path (/mcp/{key}) or Authorization: Bearer header
+ * Transport: Streamable HTTP at /mcp/{key}
  *
  * Stateless design: Each request creates a fresh McpServer. For non-initialize
  * requests, the server is pre-initialized via sequential handleRequest calls
@@ -102,14 +102,17 @@ export default {
       return corsResponse(200, "Garmin MCP Cloud — OK");
     }
 
-    // Only /mcp path
-    if (url.pathname !== "/mcp") {
+    // Auth: accept key via URL path (/mcp/{key}) or Authorization header
+    const pathMatch = url.pathname.match(/^\/mcp\/(.+)$/);
+    const urlKey = pathMatch?.[1];
+    const headerKey = request.headers.get("Authorization")?.replace("Bearer ", "");
+    const providedKey = urlKey || headerKey;
+
+    if (!url.pathname.startsWith("/mcp")) {
       return corsResponse(404, "Not Found");
     }
 
-    // API key check
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || authHeader !== `Bearer ${env.API_KEY}`) {
+    if (!providedKey || providedKey !== env.API_KEY) {
       return corsResponse(401, "Unauthorized");
     }
 
