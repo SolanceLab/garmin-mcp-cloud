@@ -2,6 +2,10 @@
   "name": "garmin-mcp-cloud",
   "version": "1.0.0",
   "private": true,
+  "description": "Remote MCP server on Cloudflare Workers — connects Garmin Connect to Claude via Streamable HTTP",
+  "author": "House of Solance",
+  "license": "MIT",
+  "repository": "https://github.com/SolanceLab/garmin-mcp-cloud",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",

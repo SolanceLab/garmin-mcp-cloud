@@ -54,7 +54,7 @@ export function registerTools(server: McpServer, env: Env) {
   // 2. get_body_battery
   server.tool(
     "get_body_battery",
-    "Get body battery data — current level, high/low, charged/drained values. Use this to check if Anne is running on fumes.",
+    "Get body battery data — current level, high/low, charged/drained values. Use this to check energy reserves.",
     { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
     async ({ date }) => {
       const d = resolveDate(date);
@@ -318,7 +318,7 @@ export function registerTools(server: McpServer, env: Env) {
   // 12. get_hydration
   server.tool(
     "get_hydration",
-    "Get hydration/water intake data for the day. Track whether Anne is drinking enough water.",
+    "Get hydration/water intake data for the day. Track daily water intake progress.",
     { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
     async ({ date }) => {
       const d = resolveDate(date);
@@ -336,7 +336,7 @@ export function registerTools(server: McpServer, env: Env) {
   // 13. add_hydration
   server.tool(
     "add_hydration",
-    "Log water intake in milliliters. Use this to record when Anne drinks water.",
+    "Log water intake in milliliters. Use this to record water consumption.",
     {
       amount_ml: z.number().describe("Amount of water in ml (e.g. 250 for a glass, 500 for a bottle)."),
     },

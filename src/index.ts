@@ -1,7 +1,7 @@
 /**
  * Garmin Connect MCP Server — Cloudflare Worker
  *
- * Remote MCP server exposing Anne's Garmin health data.
+ * Remote MCP server exposing Garmin health data.
  * Accessible from Claude mobile, desktop, and web via Streamable HTTP.
  *
  * Auth: API key via URL path (/mcp/{key}) or Authorization: Bearer header
