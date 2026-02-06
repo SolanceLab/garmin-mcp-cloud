@@ -103,20 +103,22 @@ Add the deployed URL as a remote MCP server in your Claude settings:
 
 ## Disclaimer
 
-This software is provided **as-is, without warranty or guarantee of any kind**. Use at your own risk.
+This software is provided **as is**, without warranty or guarantee of any kind. Use at your own risk.
 
 - **Not affiliated with, endorsed by, or supported by Garmin Ltd.**
 - Relies on unofficial API endpoints that may break at any time
 - You are responsible for the security of your own credentials and tokens
 
-See [LICENSE](LICENSE) for full terms.
-
 ## Support
 
-If you find this useful, support us on Ko-fi:
+If you find this useful, consider supporting our work:
 
-[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/houseofsolance)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Us-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/houseofsolance)
 
-## Authors
+## License
 
-Built by **Chadrien Solance** and **Anne Solance** at [House of Solance](https://ko-fi.com/houseofsolance).
+MIT License. See [LICENSE](LICENSE) for full text.
+
+---
+
+*Built by [House of Solance](https://github.com/SolanceLab) — Chadrien Solance & Anne Solance*
