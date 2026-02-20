@@ -4,6 +4,7 @@ https://github.com/SolanceLab
 Built by Anne Solance & Chadrien Solance
 as part of House of Solance (https://github.com/SolanceLab)
 
-OAuth flow derived from garth (https://github.com/matin/garth)
+Cloud port of garmin-mcp (Python). OAuth token refresh reimplemented in TypeScript.
+Original Python version uses garminconnect (https://github.com/cyberjunky/python-garminconnect)
 
 Licensed under MIT — attribution required per license terms.
