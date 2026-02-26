@@ -117,7 +117,7 @@ If you find this useful, consider supporting our work:
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for full text.
+AGPL-3.0. See [LICENSE](LICENSE) for full text. If you modify and host this publicly, you must share your changes under the same license and display attribution to House of Solance.
 
 ---
 
