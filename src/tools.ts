@@ -13,7 +13,7 @@ import { GarminClient } from "./garmin-client";
 import type { Env } from "./types";
 
 function resolveDate(d?: string): string {
-  return d || new Date().toISOString().split("T")[0];
+  return d || new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().split("T")[0];
 }
 
 function success(date: string, data: unknown) {
@@ -271,8 +271,9 @@ export function registerTools(server: McpServer, env: Env) {
           current.setDate(current.getDate() + 1);
         }
 
-        const today = new Date().toISOString().split("T")[0];
-        const now = new Date().toISOString().replace("Z", "").slice(0, 23);
+        const wibNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
+        const today = wibNow.toISOString().split("T")[0];
+        const now = wibNow.toISOString().replace("Z", "").slice(0, 23);
 
         const payload = {
           userProfilePk: parseInt(env.GARMIN_USER_PROFILE_PK, 10),
@@ -342,8 +343,9 @@ export function registerTools(server: McpServer, env: Env) {
     },
     async ({ amount_ml }) => {
       try {
-        const today = new Date().toISOString().split("T")[0];
-        const now = new Date().toISOString().replace("Z", "").slice(0, 23);
+        const wibNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
+        const today = wibNow.toISOString().split("T")[0];
+        const now = wibNow.toISOString().replace("Z", "").slice(0, 23);
 
         const data = await garmin.put(
           "/usersummary-service/usersummary/hydration/log",
