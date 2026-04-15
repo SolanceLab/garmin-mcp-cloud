@@ -10,6 +10,7 @@ import {
   loadTokens,
   refreshDIToken,
   tokenExpiresSoon,
+  jwtExp as jwtExpFromToken,
 } from "./token-refresh";
 
 const GARMIN_BASE = "https://connectapi.garmin.com";
@@ -89,8 +90,24 @@ export class GarminClient {
 
     if (resp.status === 204) return null;
     if (!resp.ok) {
+      const body = await resp.text();
+      const respHeaders: Record<string, string> = {};
+      resp.headers.forEach((v, k) => {
+        respHeaders[k] = v;
+      });
+      console.error(
+        JSON.stringify({
+          tag: "garmin_upstream_error",
+          status: resp.status,
+          method,
+          url: url.toString(),
+          response_headers: respHeaders,
+          response_body: body.slice(0, 1000),
+          jwt_exp: jwtExpFromToken(tokens.di_token),
+        })
+      );
       throw new Error(
-        `Garmin API error (${resp.status} ${method} ${path}): ${(await resp.text()).slice(0, 300)}`
+        `Garmin API error (${resp.status} ${method} ${path}): ${body.slice(0, 300)}`
       );
     }
     const text = await resp.text();
