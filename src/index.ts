@@ -56,7 +56,7 @@ async function createInitializedServer(
   url: string,
   headers: Headers
 ): Promise<WebStandardStreamableHTTPServerTransport> {
-  const server = new McpServer({ name: "garmin", version: "1.0.0" });
+  const server = new McpServer({ name: "garmin", version: "1.1.0" });
   registerTools(server, env);
 
   const transport = new WebStandardStreamableHTTPServerTransport({
