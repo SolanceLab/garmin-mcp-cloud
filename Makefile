@@ -4,3 +4,4 @@
 test:
 	npm install --no-audit --no-fund
 	npx tsc --noEmit
+	npx vitest run

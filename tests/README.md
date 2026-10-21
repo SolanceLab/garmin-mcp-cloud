@@ -1,1 +1,1 @@
-This room has no unit tests yet (it talks to the live Garmin Connect service). `make test` at the repository root runs a compile/type check of every source file.
+Unit tests for the tool handlers live in `tools.test.ts` and run with `npm test` (vitest, mocked fetch, no network). `make test` also type-checks every source file.

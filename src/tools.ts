@@ -1,6 +1,6 @@
 // Copyright (c) 2026 House of Solance
 /**
- * All 14 Garmin MCP tools — ported from server.py.
+ * All 20 Garmin MCP tools — ported from server.py.
  *
  * Each tool follows the same pattern:
  * 1. Resolve date (default to today)
@@ -28,6 +28,13 @@ function successMsg(msg: string, extra?: Record<string, unknown>) {
 function error(msg: string) {
   return { content: [{ type: "text" as const, text: JSON.stringify({ success: false, error: msg }) }] };
 }
+
+// Garmin dive activity type keys (parent type: diving). Includes apnea_hunting and pool_apnea,
+// which do not contain the word "diving".
+const DIVE_TYPE_KEYS = new Set([
+  "diving", "scuba_diving", "apnea_diving", "apnea_hunting", "pool_apnea",
+  "single_gas_diving", "multi_gas_diving", "gauge_diving", "ccr_diving",
+]);
 
 export function registerTools(server: McpServer, env: Env) {
   const garmin = new GarminClient(env);
@@ -388,6 +395,148 @@ export function registerTools(server: McpServer, env: Env) {
               null,
               2
             ),
+          }],
+        };
+      } catch (e) {
+        return error(e instanceof Error ? e.message : String(e));
+      }
+    }
+  );
+
+  // 15. get_spo2
+  server.tool(
+    "get_spo2",
+    "Get blood oxygen (SpO2) readings for the day.",
+    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    async ({ date }) => {
+      const d = resolveDate(date);
+      try {
+        const data = await garmin.get(`/wellness-service/wellness/dailySpo2/${d}`);
+        return success(d, data);
+      } catch (e) {
+        return error(e instanceof Error ? e.message : String(e));
+      }
+    }
+  );
+
+  // 16. get_respiration
+  server.tool(
+    "get_respiration",
+    "Get breathing rate (respiration) data for the day.",
+    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    async ({ date }) => {
+      const d = resolveDate(date);
+      try {
+        const data = await garmin.get(`/wellness-service/wellness/daily/respiration/${d}`);
+        return success(d, data);
+      } catch (e) {
+        return error(e instanceof Error ? e.message : String(e));
+      }
+    }
+  );
+
+  // 17. get_training_readiness
+  server.tool(
+    "get_training_readiness",
+    "Get the training readiness score and its contributing factors for the day.",
+    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    async ({ date }) => {
+      const d = resolveDate(date);
+      try {
+        const data = await garmin.get(`/metrics-service/metrics/trainingreadiness/${d}`);
+        return success(d, data);
+      } catch (e) {
+        return error(e instanceof Error ? e.message : String(e));
+      }
+    }
+  );
+
+  // 18. get_training_status
+  server.tool(
+    "get_training_status",
+    "Get the training status, load and VO2 max summary for the day.",
+    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    async ({ date }) => {
+      const d = resolveDate(date);
+      try {
+        const data = await garmin.get(`/metrics-service/metrics/trainingstatus/aggregated/${d}`);
+        return success(d, data);
+      } catch (e) {
+        return error(e instanceof Error ? e.message : String(e));
+      }
+    }
+  );
+
+  // 19. get_fitness_age
+  server.tool(
+    "get_fitness_age",
+    "Get the Garmin fitness age estimate and its contributing factors for the day.",
+    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    async ({ date }) => {
+      const d = resolveDate(date);
+      try {
+        const data = await garmin.get(`/fitnessage-service/fitnessage/${d}`);
+        return success(d, data);
+      } catch (e) {
+        return error(e instanceof Error ? e.message : String(e));
+      }
+    }
+  );
+
+  // 20. get_dives
+  server.tool(
+    "get_dives",
+    "Get recent dive activities with depth, bottom time, temperature and surface interval, with depth as Garmin reports it.",
+    {
+      limit: z.number().optional().default(5).describe("Number of recent dives to return. Defaults to 5, maximum 50."),
+    },
+    async ({ limit }) => {
+      try {
+        const n = Math.max(1, Math.min(50, Math.floor(limit)));
+        const isDive = (a: Record<string, any>) => {
+          const key = String(a?.activityType?.typeKey ?? "").toLowerCase();
+          if (key.includes("sky")) return false;
+          return DIVE_TYPE_KEYS.has(key) || key.endsWith("diving");
+        };
+        const pageSize = 100;
+        const maxPages = 10;
+        const found: Record<string, any>[] = [];
+        let scanned = 0;
+        let hitCap = false;
+        for (let page = 0; page < maxPages && found.length < n; page++) {
+          const res = (await garmin.get(
+            "/activitylist-service/activities/search/activities",
+            { start: String(page * pageSize), limit: String(pageSize) }
+          )) as unknown;
+          const rows = Array.isArray(res) ? (res as Record<string, any>[]) : [];
+          scanned += rows.length;
+          for (const a of rows) if (isDive(a)) found.push(a);
+          if (rows.length < pageSize) break;
+          if (page === maxPages - 1 && found.length < n) hitCap = true;
+        }
+        const list = found;
+        const fields = [
+          "activityId", "startTimeLocal", "activityName", "duration", "maxDepth", "avgDepth",
+          "bottomTime", "minTemperature", "maxTemperature", "surfaceInterval", "diveNumber", "isDecoDive",
+        ];
+        const dives = list
+          .slice(0, n)
+          .map((a) => {
+            const out: Record<string, unknown> = {};
+            for (const f of fields) {
+              if (a[f] !== undefined && a[f] !== null) out[f] = a[f];
+            }
+            return out;
+          });
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({
+              success: true,
+              count: dives.length,
+              ...(hitCap ? { truncated: true, note: `Scanned only the ${scanned} most recent activities; older dives may exist.` } : {}),
+              data: dives,
+            }, null, 2),
           }],
         };
       } catch (e) {

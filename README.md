@@ -65,6 +65,12 @@ npx wrangler deploy
 | get_hrv | Heart rate variability |
 | get_hydration | Water intake for the day |
 | get_activities | Recent workouts and activities |
+| get_spo2 | Blood oxygen readings for the day |
+| get_respiration | Breathing rate data for the day |
+| get_training_readiness | Training readiness score and contributing factors |
+| get_training_status | Training status, load and VO2 max summary |
+| get_fitness_age | Fitness age estimate |
+| get_dives | Recent dive activities: depth, bottom time, temperature, surface interval |
 | add_hydration | Log water intake in ml (writes to Garmin Connect) |
 | update_menstrual_cycle | Log or update period start and end dates (writes to Garmin Connect) |
 
