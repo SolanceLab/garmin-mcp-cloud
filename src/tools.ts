@@ -1,3 +1,4 @@
+// Copyright (c) 2026 House of Solance
 /**
  * All 14 Garmin MCP tools — ported from server.py.
  *

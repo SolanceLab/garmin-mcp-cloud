@@ -1,0 +1,29 @@
+{
+  "name": "garmin",
+  "description": "Garmin: your Garmin Connect health data (sleep, heart rate, stress, steps, hydration, cycle) as tools.",
+  "version": "1.0.0",
+  "author": { "name": "House of Solance" },
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "userConfig": {
+    "server_url": {
+      "type": "string",
+      "title": "Server address",
+      "description": "Where your Garmin server answers.",
+      "required": true
+    },
+    "api_key": {
+      "type": "string",
+      "title": "Key",
+      "description": "The key your Garmin server expects.",
+      "required": true,
+      "sensitive": true
+    }
+  },
+  "mcpServers": {
+    "garmin": {
+      "type": "http",
+      "url": "${user_config.server_url}",
+      "headers": { "Authorization": "Bearer ${user_config.api_key}" }
+    }
+  }
+}

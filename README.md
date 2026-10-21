@@ -1,124 +1,102 @@
-# Garmin Connect MCP Server — Cloud
+# Garmin (cloud)
 
-Remote MCP server on Cloudflare Workers that connects your Garmin Connect account to Claude mobile, desktop, and web. Exposes health and fitness data as tools via Streamable HTTP transport.
+Made by House of Solance · free for noncommercial use · credit required
 
-Cloud port of [garmin-mcp](https://github.com/SolanceLab/garmin-mcp) (local Python version).
+## What it is
 
-## Tools (14)
+A remote MCP server that connects your own Garmin Connect account to Claude on mobile, desktop and the web and offers your health and fitness data (sleep, heart rate, stress, steps, hydration, cycle) as 14 tools. It is the cloud copy of [garmin-mcp](https://github.com/SolanceLab/garmin-mcp).
 
-### Read
-- **get_daily_summary** — Combined daily health overview
-- **get_body_battery** — Energy level, charged/drained values
-- **get_sleep_data** — Sleep summary: score, bedtime, wake time, stage durations (~4KB)
-- **get_sleep_detail** — Granular sleep data: movement, HR, SpO2, stress, HRV timelines (~200KB)
-- **get_heart_rate** — Daily HR: current, min, max, average
-- **get_resting_heart_rate** — Baseline HR trend
-- **get_stress** — Stress levels and zone breakdown
-- **get_steps** — Step count and activity data
-- **get_menstrual_cycle** — Cycle day, phase, predictions
-- **get_hrv** — Heart rate variability
-- **get_hydration** — Water intake for the day
-- **get_activities** — Recent workouts and activities
+## What you need
 
-### Write
-- **add_hydration** — Log water intake in ml
-- **update_menstrual_cycle** — Log/update period start and end dates
+- A Garmin Connect account with sign-in tokens (the local [garmin-mcp](https://github.com/SolanceLab/garmin-mcp) `auth.py` creates them).
+- A Cloudflare account (the free tier works) and Node.js 18 or newer.
 
-## Architecture
+This copy runs in the cloud, on your own Cloudflare Worker.
 
-- **Runtime:** Cloudflare Workers (TypeScript)
-- **Transport:** MCP Streamable HTTP
-- **Auth:** API key (Bearer token)
-- **Token storage:** Cloudflare KV (encrypted at rest)
-- **Garmin API:** Direct `fetch()` calls with OAuth2 Bearer tokens
-- **Token refresh:** OAuth1 HMAC-SHA1 exchange using Web Crypto API
-- **Stateless:** Each request creates a fresh MCP server — no Durable Objects required
+## Install
 
-## Setup
+Deploy your Worker once (steps under Settings), then add it to Claude:
 
-### Prerequisites
-- Node.js 18+
-- Cloudflare account (free tier works)
-- Wrangler CLI: `npm install -g wrangler`
-- Garmin Connect account with OAuth tokens (see [garmin-mcp](https://github.com/SolanceLab/garmin-mcp) for initial auth)
+```
+claude plugin install garmin@presence-app
+```
 
-### 1. Clone and install
+or add the Worker address as a remote MCP server in Claude settings, with the header `Authorization: Bearer <your key>`.
 
-```bash
+## Settings
+
+| Setting | What it is |
+|---|---|
+| Server address | Your Worker address, ending in `/mcp` |
+| Key | The key your Worker expects (`API_KEY`) |
+
+Deploying the Worker:
+
+```
 git clone https://github.com/SolanceLab/garmin-mcp-cloud.git
 cd garmin-mcp-cloud
 npm install
-```
-
-### 2. Create KV namespace
-
-```bash
 npx wrangler kv namespace create "GARMIN_KV"
 ```
 
-Update `wrangler.jsonc` with the returned namespace ID.
+Put the namespace id it prints into `wrangler.jsonc` (the file ships with a placeholder), then upload your tokens and set the secrets:
 
-### 3. Upload OAuth tokens
-
-Requires existing tokens from the [local garmin-mcp](https://github.com/SolanceLab/garmin-mcp) auth flow:
-
-```bash
-npx wrangler kv key put --remote --namespace-id=<ID> "oauth1_token" "$(cat ~/.garminconnect/oauth1_token.json)"
-npx wrangler kv key put --remote --namespace-id=<ID> "oauth2_token" "$(cat ~/.garminconnect/oauth2_token.json)"
 ```
-
-### 4. Set secrets
-
-```bash
-npx wrangler secret put API_KEY                 # Your chosen API key
-npx wrangler secret put GARMIN_DISPLAY_NAME     # Garmin display name (UUID)
-npx wrangler secret put GARMIN_USER_PROFILE_PK  # Garmin profile PK (number)
-```
-
-### 5. Deploy
-
-```bash
+npx wrangler kv key put --remote --namespace-id=<NAMESPACE_ID> "di_tokens" "$(cat ~/.garminconnect/garmin_tokens.json)"
+npx wrangler secret put API_KEY
+npx wrangler secret put GARMIN_DISPLAY_NAME
+npx wrangler secret put GARMIN_USER_PROFILE_PK
 npx wrangler deploy
 ```
 
-### 6. Connect Claude
+(`npm run upload-tokens` reads your saved tokens and prints the exact upload commands.)
 
-Add the deployed URL as a remote MCP server in your Claude settings:
-- **URL:** `https://your-worker.your-account.workers.dev/mcp`
-- **Auth header:** `Authorization: Bearer <your-api-key>`
+## Tools
 
-## Token Lifecycle
+| Tool | What it does |
+|---|---|
+| get_daily_summary | Combined daily health overview |
+| get_body_battery | Energy level, charged and drained values |
+| get_sleep_data | Sleep summary: score, bedtime, wake time, stage durations (about 4 KB) |
+| get_sleep_detail | Granular sleep data: movement, heart rate, SpO2, stress and HRV timelines (about 200 KB) |
+| get_heart_rate | Daily heart rate: current, min, max, average |
+| get_resting_heart_rate | Baseline heart-rate trend |
+| get_stress | Stress levels and zone breakdown |
+| get_steps | Step count and activity data |
+| get_menstrual_cycle | Cycle day, phase, predictions |
+| get_hrv | Heart rate variability |
+| get_hydration | Water intake for the day |
+| get_activities | Recent workouts and activities |
+| add_hydration | Log water intake in ml (writes to Garmin Connect) |
+| update_menstrual_cycle | Log or update period start and end dates (writes to Garmin Connect) |
 
-| Token | Lifetime | Refresh |
-|-------|----------|---------|
-| OAuth2 access_token | ~20 hours | Auto-refreshed by Worker |
-| OAuth2 refresh_token | ~30 days | Auto-refreshed by Worker |
-| OAuth1 token | ~1 year | Re-run auth.py + re-upload |
+Dates use `YYYY-MM-DD` and default to today.
 
-## Dependencies
+## Limits
 
-- `@modelcontextprotocol/sdk` — MCP protocol implementation
-- `agents` — Cloudflare Workers agent framework
-- `zod` — Schema validation
+- The server relies on unofficial Garmin endpoints that can change without notice.
+- Access tokens refresh by themselves (about every 20 hours); if the long-lived token expires, run `auth.py` from garmin-mcp again and re-upload.
+- `get_sleep_detail` returns about 200 KB per day; use `get_sleep_data` for the summary.
+- The server is stateless: no Durable Objects, one fresh MCP server per request.
 
-## Disclaimer
+## How it works
 
-This software is provided **as is**, without warranty or guarantee of any kind. Use at your own risk.
+A Cloudflare Worker (TypeScript) speaking MCP over Streamable HTTP. Requests need your key as a Bearer header or in the URL path. Garmin tokens live in Cloudflare KV and are refreshed with the Web Crypto API. Garmin is reached with direct `fetch()` calls.
 
-- **Not affiliated with, endorsed by, or supported by Garmin Ltd.**
-- Relies on unofficial API endpoints that may break at any time
-- You are responsible for the security of your own credentials and tokens
+Disclaimer. Not affiliated with, endorsed by, or supported by Garmin Ltd. This software is provided as is, without warranty of any kind. It relies on unofficial, reverse-engineered Garmin endpoints that may break at any time. The menstrual cycle write endpoint is undocumented and was captured through browser network inspection. You are responsible for the security of your own Garmin credentials and tokens.
 
-## Support
+## Credit and use
 
-If you find this useful, consider supporting our work:
+Garmin is made by House of Solance. You're welcome to use it, change it and build on it for any noncommercial purpose, as long as our credit travels with it.
 
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Us-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/houseofsolance)
+**Keep the credit.** Every copy, changed or not, must carry the licence and this line:
+`Required Notice: Copyright (c) 2026 House of Solance (https://github.com/SolanceLab)`
+Removing or replacing it breaks the licence.
 
-## License
+**Commercial use needs our permission.** Ask us first.
 
-AGPL-3.0. See [LICENSE](LICENSE) for full text. If you modify and host this publicly, you must share your changes under the same license and display attribution to House of Solance.
+**We look for copies.** When we find our work without its credit, or used commercially without permission, we ask for it to be taken down.
 
----
+## Licence
 
-*Built by [House of Solance](https://github.com/SolanceLab) — Chadrien Solance & Anne Solance*
+[PolyForm Noncommercial 1.0.0](LICENSE.md). See [NOTICE.md](NOTICE.md).

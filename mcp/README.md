@@ -1,0 +1,1 @@
+The MCP server of this room is `src/index.ts`, a Cloudflare Worker over Streamable HTTP. The server address is wherever you deploy it, the key is the `API_KEY` secret, and requests without the key are refused.

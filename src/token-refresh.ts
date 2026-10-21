@@ -1,3 +1,4 @@
+// Copyright (c) 2026 House of Solance
 /**
  * DI OAuth bearer token refresh for Garmin Connect.
  *

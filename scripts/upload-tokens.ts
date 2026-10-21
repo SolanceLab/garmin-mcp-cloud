@@ -1,3 +1,4 @@
+// Copyright (c) 2026 House of Solance
 /**
  * Upload local DI OAuth tokens to Cloudflare KV.
  *

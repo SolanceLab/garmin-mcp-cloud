@@ -1,3 +1,4 @@
+// Copyright (c) 2026 House of Solance
 /**
  * Garmin Connect MCP Server — Cloudflare Worker
  *

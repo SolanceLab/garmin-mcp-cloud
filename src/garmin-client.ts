@@ -1,3 +1,4 @@
+// Copyright (c) 2026 House of Solance
 /**
  * Garmin Connect API client for Cloudflare Workers.
  *

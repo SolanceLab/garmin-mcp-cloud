@@ -1,3 +1,4 @@
+// Copyright (c) 2026 House of Solance
 export interface DITokens {
   di_token: string;
   di_refresh_token: string;
