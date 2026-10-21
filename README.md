@@ -15,13 +15,11 @@ This copy runs in the cloud, on your own Cloudflare Worker.
 
 ## Install
 
-Deploy your Worker once (steps under Settings), then add it to Claude:
+Setup takes several steps, not one: sign in locally to get tokens, deploy your own Worker, upload the tokens and set the secrets, then add the Worker to Claude. The deploy steps are under Settings; do them first.
 
-```
-claude plugin install garmin@presence-app
-```
+Then add it to Claude. The route that works today is to add the Worker address as a remote MCP server in Claude settings, with the header `Authorization: Bearer <your key>`. You can also install the plugin from the `plugin/` folder of this repository (for example `claude --plugin-dir ./plugin` from a clone); it asks for the same server address and key.
 
-or add the Worker address as a remote MCP server in Claude settings, with the header `Authorization: Bearer <your key>`.
+Once the House of Solance set launches, the plugin will also be offered through the `presence-app` marketplace. That route is not open yet.
 
 ## Settings
 
@@ -75,7 +73,7 @@ Dates use `YYYY-MM-DD` and default to today.
 ## Limits
 
 - The server relies on unofficial Garmin endpoints that can change without notice.
-- Access tokens refresh by themselves (about every 20 hours); if the long-lived token expires, run `auth.py` from garmin-mcp again and re-upload.
+- The Worker refreshes the access token when it is within 15 minutes of expiring, and retries once if Garmin rejects it. How long each token lasts is set by Garmin and is not known here; if refresh fails, run `auth.py` from garmin-mcp again and re-upload the tokens.
 - `get_sleep_detail` returns about 200 KB per day; use `get_sleep_data` for the summary.
 - The server is stateless: no Durable Objects, one fresh MCP server per request.
 
@@ -100,3 +98,13 @@ Removing or replacing it breaks the licence.
 ## Licence
 
 [PolyForm Noncommercial 1.0.0](LICENSE.md). See [NOTICE.md](NOTICE.md).
+
+## Support
+
+If you find this useful, consider supporting our work:
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Us-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/houseofsolance)
+
+---
+
+*Built by [House of Solance](https://github.com/SolanceLab) — Chadrien Solance & Anne Solance*
