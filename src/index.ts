@@ -8,10 +8,8 @@
  * Auth: API key via URL path (/mcp/{key}) or Authorization: Bearer header
  * Transport: Streamable HTTP at /mcp/{key}
  *
- * Stateless design: Each request creates a fresh McpServer. For non-initialize
- * requests, the server is pre-initialized via sequential handleRequest calls
- * on the same transport instance. This is necessary because Cloudflare Worker
- * isolates don't share memory across HTTP requests.
+ * Stateless design: each request creates a fresh McpServer and transport,
+ * because Cloudflare Worker isolates don't share memory across HTTP requests.
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -38,24 +36,11 @@ function addCorsHeaders(response: Response): Response {
   return new Response(response.body, { status: response.status, headers });
 }
 
-/** Build a fake Request to pass to the transport's handleRequest. */
-function makeReq(url: string, headers: Headers, body: unknown): Request {
-  return new Request(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
-}
-
 /**
- * Create a fresh McpServer + transport, pre-initialized and ready
- * to handle tool calls immediately.
+ * Create a fresh McpServer + stateless transport for one request.
+ * SDK >= 1.26 refuses to reuse a stateless transport, so each request gets its own.
  */
-async function createInitializedServer(
-  env: Env,
-  url: string,
-  headers: Headers
-): Promise<WebStandardStreamableHTTPServerTransport> {
+async function createServer(env: Env): Promise<WebStandardStreamableHTTPServerTransport> {
   const server = new McpServer({ name: "garmin", version: "1.1.0" });
   registerTools(server, env);
 
@@ -63,29 +48,6 @@ async function createInitializedServer(
     enableJsonResponse: true,
   });
   await server.connect(transport);
-
-  // Step 1: Send initialize request
-  await transport.handleRequest(
-    makeReq(url, headers, {
-      jsonrpc: "2.0",
-      id: "__init__",
-      method: "initialize",
-      params: {
-        protocolVersion: "2024-11-05",
-        capabilities: {},
-        clientInfo: { name: "garmin-mcp-cloud-internal", version: "1.0.0" },
-      },
-    })
-  );
-
-  // Step 2: Send initialized notification
-  await transport.handleRequest(
-    makeReq(url, headers, {
-      jsonrpc: "2.0",
-      method: "notifications/initialized",
-    })
-  );
-
   return transport;
 }
 
@@ -135,15 +97,8 @@ export default {
       return corsResponse(202);
     }
 
-    // Create pre-initialized server and handle the actual request
-    const transport = await createInitializedServer(
-      env,
-      request.url,
-      request.headers
-    );
-
-    // For initialize requests from the real client, we still handle them
-    // (the pre-init uses a different id so the SDK treats this as a re-init)
+    // Fresh stateless server per request (Worker isolates share no memory)
+    const transport = await createServer(env);
     const actualReq = new Request(request.url, {
       method: "POST",
       headers: request.headers,
