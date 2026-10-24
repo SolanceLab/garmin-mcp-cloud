@@ -1,5 +1,5 @@
 // Copyright (c) 2026 House of Solance
-import { describe, it, expect } from "vitest";
+import { expect, it, describe } from "vitest";
 import worker from "../src/index";
 
 const env = {

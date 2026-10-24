@@ -1,12 +1,12 @@
 // Copyright (c) 2026 House of Solance
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { beforeEach, expect, it, vi, describe, afterEach } from "vitest";
 import { registerTools } from "../src/tools";
 
 type Handler = (args: Record<string, unknown>) => Promise<{ content: { text: string }[] }>;
 
 function setup() {
   const handlers: Record<string, Handler> = {};
-  const server = { tool: (name: string, _d: string, _s: unknown, h: Handler) => { handlers[name] = h; } };
+  const server = { registerTool: (name: string, _c: unknown, h: Handler) => { handlers[name] = h; } };
   const env = {
     GARMIN_KV: { get: async () => JSON.stringify({ di_token: "x", di_refresh_token: "y", di_client_id: "z" }), put: async () => {} },
     API_KEY: "k",

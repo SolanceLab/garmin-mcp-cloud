@@ -10,8 +10,8 @@ import type { DITokens, Env } from "./types";
 import {
   loadTokens,
   refreshDIToken,
-  tokenExpiresSoon,
   jwtExp as jwtExpFromToken,
+  tokenExpiresSoon,
 } from "./token-refresh";
 
 const GARMIN_BASE = "https://connectapi.garmin.com";

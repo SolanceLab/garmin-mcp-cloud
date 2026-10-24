@@ -36,15 +36,28 @@ const DIVE_TYPE_KEYS = new Set([
   "single_gas_diving", "multi_gas_diving", "gauge_diving", "ccr_diving",
 ]);
 
+// zod 3 advertised additionalProperties:false on every tool input; zod 4 omits it, which would let
+// clients believe extra arguments are accepted. Re-state it explicitly; unknown keys are still stripped
+// at parse time exactly as before (z.object, not z.strictObject).
+const args = <T extends z.ZodRawShape>(shape: T) => z.object(shape).meta({ additionalProperties: false });
+type ToolArgs<T extends z.ZodRawShape> = z.infer<z.ZodObject<T>>;
+
 export function registerTools(server: McpServer, env: Env) {
   const garmin = new GarminClient(env);
   const dn = env.GARMIN_DISPLAY_NAME;
+  // server.tool() only takes a raw shape, which would drop the meta above; registerTool takes the object schema.
+  const tool = <T extends z.ZodRawShape>(
+    name: string,
+    description: string,
+    inputSchema: z.ZodObject<T>,
+    cb: (a: ToolArgs<T>) => Promise<{ content: { type: "text"; text: string }[] }>,
+  ) => server.registerTool(name, { description, inputSchema }, (a: any) => cb(a));
 
   // 1. get_daily_summary
-  server.tool(
+  tool(
     "get_daily_summary",
     "Get a combined daily health overview — the morning check-in tool. Returns steps, distance, body battery, sleep score, resting HR, stress, active minutes.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -60,10 +73,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 2. get_body_battery
-  server.tool(
+  tool(
     "get_body_battery",
     "Get body battery data — current level, high/low, charged/drained values. Use this to check energy reserves.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -82,10 +95,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 3. get_sleep_data (summary ~4KB)
-  server.tool(
+  tool(
     "get_sleep_data",
     "Get sleep summary — score, duration, bedtime, wake time, stage durations. Fast and lightweight. Use get_sleep_detail for granular data.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -128,10 +141,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 4. get_sleep_detail (granular ~200KB)
-  server.tool(
+  tool(
     "get_sleep_detail",
     "Get granular sleep data — movement, SpO2 timeline, HR, stress, body battery, respiration, HRV. WARNING: Large response (~200KB). Only use when detailed analysis is needed.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -159,10 +172,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 5. get_heart_rate
-  server.tool(
+  tool(
     "get_heart_rate",
     "Get daily heart rate data — current, min, max, average, resting.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -178,10 +191,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 6. get_resting_heart_rate
-  server.tool(
+  tool(
     "get_resting_heart_rate",
     "Get resting heart rate — baseline health trend tracking.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -197,10 +210,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 7. get_stress
-  server.tool(
+  tool(
     "get_stress",
     "Get stress data — average stress, max stress, time in rest/low/medium/high zones. Use this to detect hidden overwhelm.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -215,10 +228,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 8. get_steps
-  server.tool(
+  tool(
     "get_steps",
     "Get daily step count and activity data — sedentary check.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -234,10 +247,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 9. get_menstrual_cycle
-  server.tool(
+  tool(
     "get_menstrual_cycle",
     "Get menstrual/period cycle tracking data — cycle day, phase, predictions.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -252,13 +265,13 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 10. update_menstrual_cycle
-  server.tool(
+  tool(
     "update_menstrual_cycle",
     "Log or update period start and end dates in Garmin Connect. Writes directly to the Garmin menstrual cycle calendar.",
-    {
+    args({
       start_date: z.string().describe("First day of period in YYYY-MM-DD format."),
       end_date: z.string().describe("Last day of period in YYYY-MM-DD format."),
-    },
+    }),
     async ({ start_date, end_date }) => {
       try {
         const start = new Date(start_date + "T00:00:00");
@@ -309,10 +322,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 11. get_hrv
-  server.tool(
+  tool(
     "get_hrv",
     "Get Heart Rate Variability (HRV) data — nervous system recovery and stress resilience. Higher HRV generally indicates better recovery.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -325,10 +338,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 12. get_hydration
-  server.tool(
+  tool(
     "get_hydration",
     "Get hydration/water intake data for the day. Track daily water intake progress.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -343,12 +356,12 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 13. add_hydration
-  server.tool(
+  tool(
     "add_hydration",
     "Log water intake in milliliters. Use this to record water consumption.",
-    {
+    args({
       amount_ml: z.number().describe("Amount of water in ml (e.g. 250 for a glass, 500 for a bottle)."),
-    },
+    }),
     async ({ amount_ml }) => {
       try {
         const wibNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
@@ -375,12 +388,12 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 14. get_activities
-  server.tool(
+  tool(
     "get_activities",
     "Get recent activities — workouts, runs, walks, dives, etc.",
-    {
+    args({
       limit: z.number().optional().default(5).describe("Number of recent activities to return. Defaults to 5."),
-    },
+    }),
     async ({ limit }) => {
       try {
         const data = (await garmin.get(
@@ -404,10 +417,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 15. get_spo2
-  server.tool(
+  tool(
     "get_spo2",
     "Get blood oxygen (SpO2) readings for the day.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -420,10 +433,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 16. get_respiration
-  server.tool(
+  tool(
     "get_respiration",
     "Get breathing rate (respiration) data for the day.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -436,10 +449,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 17. get_training_readiness
-  server.tool(
+  tool(
     "get_training_readiness",
     "Get the training readiness score and its contributing factors for the day.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -452,10 +465,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 18. get_training_status
-  server.tool(
+  tool(
     "get_training_status",
     "Get the training status, load and VO2 max summary for the day.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -468,10 +481,10 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 19. get_fitness_age
-  server.tool(
+  tool(
     "get_fitness_age",
     "Get the Garmin fitness age estimate and its contributing factors for the day.",
-    { date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") },
+    args({ date: z.string().optional().describe("Date in YYYY-MM-DD format. Defaults to today.") }),
     async ({ date }) => {
       const d = resolveDate(date);
       try {
@@ -484,12 +497,12 @@ export function registerTools(server: McpServer, env: Env) {
   );
 
   // 20. get_dives
-  server.tool(
+  tool(
     "get_dives",
     "Get recent dive activities with depth, bottom time, temperature and surface interval, with depth as Garmin reports it.",
-    {
+    args({
       limit: z.number().optional().default(5).describe("Number of recent dives to return. Defaults to 5, maximum 50."),
-    },
+    }),
     async ({ limit }) => {
       try {
         const n = Math.max(1, Math.min(50, Math.floor(limit)));
