@@ -1,6 +1,6 @@
 ---
 name: garmin-mcp-cloud
-description: Use when the user asks about their own Garmin Connect data (sleep, heart rate, stress, steps, body battery, HRV, SpO2, breathing, training readiness or status, fitness age, dives, hydration, menstrual cycle) or wants to log water or period dates. Reads and writes through the user's own Garmin Worker; nothing goes anywhere else.
+description: Use when the user asks about their own Garmin Connect data (sleep, heart rate, stress, steps, body battery, HRV, SpO2, breathing, training readiness or status, fitness age, dives, hydration, menstrual cycle) or wants to log water or period dates. Reads and writes through the user's own Garmin Worker, which talks to Garmin Connect; the answers come back into this conversation.
 ---
 
 # Garmin (cloud)

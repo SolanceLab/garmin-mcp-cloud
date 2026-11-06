@@ -9,7 +9,7 @@ A remote MCP server that connects your own Garmin Connect account to Claude on m
 ## What you need
 
 - A Garmin Connect account with sign-in tokens (the local [garmin-mcp](https://github.com/SolanceLab/garmin-mcp) `auth.py` creates them).
-- A Cloudflare account (the free tier works) and Node.js 18 or newer.
+- A Cloudflare account (the free tier works) and Node.js 20 or newer.
 
 This copy runs in the cloud, on your own Cloudflare Worker.
 
@@ -56,7 +56,7 @@ npx wrangler kv namespace create "GARMIN_KV"
 Put the namespace id it prints into `wrangler.jsonc` (the file ships with a placeholder), then upload your tokens and set the secrets:
 
 ```
-npx wrangler kv key put --remote --namespace-id=<NAMESPACE_ID> "di_tokens" "$(cat ~/.garminconnect/garmin_tokens.json)"
+npx wrangler kv key put --remote --namespace-id=<NAMESPACE_ID> "di_tokens" --path ~/.garminconnect/garmin_tokens.json
 npx wrangler secret put API_KEY
 npx wrangler secret put GARMIN_DISPLAY_NAME
 npx wrangler secret put GARMIN_USER_PROFILE_PK

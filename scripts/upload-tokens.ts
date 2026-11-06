@@ -48,7 +48,7 @@ try {
   console.log("(Namespace ID is in wrangler.jsonc — binding GARMIN_KV)");
   console.log();
   console.log(
-    `npx wrangler kv key put --namespace-id=<NAMESPACE_ID> "di_tokens" '${JSON.stringify(tokens)}'`
+    `npx wrangler kv key put --remote --namespace-id=<NAMESPACE_ID> "di_tokens" --path ~/.garminconnect/garmin_tokens.json`
   );
   console.log();
   console.log("After deploy, delete the stale legacy keys:");
