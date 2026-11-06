@@ -1,8 +1,9 @@
+// garmin-mcp-cloud — Copyright (c) 2026 House of Solance. PolyForm Noncommercial 1.0.0. Required Notice: Copyright (c) 2026 House of Solance (https://github.com/SolanceLab/garmin-mcp-cloud)
 // Copyright (c) 2026 House of Solance
 // Guards the public MCP surface: every tool's name + inputSchema must match the stored snapshot.
 // Offline: registers the real tools on a real McpServer and lists them over an in-memory transport.
 // Regenerate on purpose with: UPDATE_SNAPSHOT=1 npx vitest run tests/tools-list-schema.test.ts
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 import { readFile, writeFile } from "node:fs/promises";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -32,7 +33,7 @@ function normalise(node: unknown): unknown {
 }
 
 async function listAll() {
-  const server = new McpServer({ name: "garmin", version: "1.1.0" });
+  const server = new McpServer({ name: "garmin", version: "1.2.0" });
   registerTools(server, { GARMIN_KV: { get: async () => null, put: async () => {} }, API_KEY: "test-only" } as any);
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "snap", version: "1.0.0" });

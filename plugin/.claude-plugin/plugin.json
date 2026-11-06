@@ -1,8 +1,10 @@
 {
-  "name": "garmin",
-  "description": "Garmin: your Garmin Connect health data (sleep, heart rate, stress, steps, hydration, cycle) as tools.",
-  "version": "1.1.0",
-  "author": { "name": "House of Solance" },
+  "name": "garmin-mcp-cloud",
+  "description": "Garmin (cloud): your own Garmin Connect health data (sleep, heart rate, stress, steps, hydration, cycle, training) as tools, through a Worker you run in your own Cloudflare account.",
+  "version": "1.2.0",
+  "author": {
+    "name": "House of Solance"
+  },
   "license": "PolyForm-Noncommercial-1.0.0",
   "userConfig": {
     "server_url": {
@@ -23,7 +25,9 @@
     "garmin": {
       "type": "http",
       "url": "${user_config.server_url}",
-      "headers": { "Authorization": "Bearer ${user_config.api_key}" }
+      "headers": {
+        "Authorization": "Bearer ${user_config.api_key}"
+      }
     }
   }
 }

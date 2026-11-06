@@ -1,3 +1,4 @@
+// garmin-mcp-cloud — Copyright (c) 2026 House of Solance. PolyForm Noncommercial 1.0.0. Required Notice: Copyright (c) 2026 House of Solance (https://github.com/SolanceLab/garmin-mcp-cloud)
 // Copyright (c) 2026 House of Solance
 /**
  * Garmin Connect MCP Server — Cloudflare Worker
@@ -41,7 +42,7 @@ function addCorsHeaders(response: Response): Response {
  * SDK >= 1.26 refuses to reuse a stateless transport, so each request gets its own.
  */
 async function createServer(env: Env): Promise<WebStandardStreamableHTTPServerTransport> {
-  const server = new McpServer({ name: "garmin", version: "1.1.0" });
+  const server = new McpServer({ name: "garmin", version: "1.2.0" });
   registerTools(server, env);
 
   const transport = new WebStandardStreamableHTTPServerTransport({

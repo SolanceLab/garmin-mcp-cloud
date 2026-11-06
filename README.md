@@ -17,9 +17,25 @@ This copy runs in the cloud, on your own Cloudflare Worker.
 
 Setup takes several steps, not one: sign in locally to get tokens, deploy your own Worker, upload the tokens and set the secrets, then add the Worker to Claude. The deploy steps are under Settings; do them first.
 
-Then add it to Claude. The route that works today is to add the Worker address as a remote MCP server in Claude settings, with the header `Authorization: Bearer <your key>`. You can also install the plugin from the `plugin/` folder of this repository (for example `claude --plugin-dir ./plugin` from a clone); it asks for the same server address and key.
+Then add it to your AI.
 
-Once the House of Solance set launches, the plugin will also be offered through the `presence-app` marketplace. That route is not open yet.
+**Claude Code, with the plugin.** It asks for your Worker address (ending in `/mcp`) and your key, and keeps the key secret.
+
+```
+claude plugin marketplace add SolanceLab/plugins
+claude plugin install garmin-mcp-cloud@solancelab
+```
+
+**Codex, with the plugin.** Codex has no settings prompt, so install the plugin and then add your Worker once, with the key kept in an environment variable you set in your own shell:
+
+```
+codex plugin marketplace add SolanceLab/plugins
+codex mcp add garmin --url "<your Worker address ending in /mcp>" --bearer-token-env-var GARMIN_MCP_KEY
+```
+
+Install garmin-mcp-cloud from that store in Codex's plugin list; its skill tells your AI how to use the 20 tools.
+
+**Claude on mobile, desktop and the web, without the plugin.** Add the Worker address as a remote MCP server in Claude settings, with the header `Authorization: Bearer <your key>`.
 
 ## Settings
 

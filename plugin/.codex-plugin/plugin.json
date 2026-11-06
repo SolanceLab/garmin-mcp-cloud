@@ -1,0 +1,11 @@
+{
+  "name": "garmin-mcp-cloud",
+  "version": "1.2.0",
+  "description": "Garmin (cloud): your own Garmin Connect health data (sleep, heart rate, stress, steps, hydration, cycle, training) as tools, through a Worker you run in your own Cloudflare account.",
+  "author": {
+    "name": "House of Solance",
+    "url": "https://github.com/SolanceLab"
+  },
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "skills": "./skills/"
+}

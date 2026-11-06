@@ -1,3 +1,4 @@
+// garmin-mcp-cloud — Copyright (c) 2026 House of Solance. PolyForm Noncommercial 1.0.0. Required Notice: Copyright (c) 2026 House of Solance (https://github.com/SolanceLab/garmin-mcp-cloud)
 // Copyright (c) 2026 House of Solance
 /**
  * Garmin Connect API client for Cloudflare Workers.
